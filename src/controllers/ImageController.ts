@@ -1,5 +1,7 @@
 import express from 'express';
 import { IExpressWithJson, JsonErrorResponse } from 'express-with-json/dist';
+import { body, validationResult } from 'express-validator';
+
 
 import container from '../service-container/inversify.config';
 
@@ -12,6 +14,12 @@ var imageService = container.get<ImageServiceInterface>(ServiceInterfaceTypes.Se
 export async function create(req: express.Request) {
   const image = new Image();
   
+  const { title, name, description, size } = req.body;
+
+  image.name = name;
+  image.size = size;
+  image.title = title;
+  image.description = description;
 
   return await imageService.create(image);
 }

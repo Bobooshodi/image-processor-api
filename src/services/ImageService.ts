@@ -23,7 +23,9 @@ export class ImageService implements ImageServiceInterface {
         return Mapper.map(imageEntity, Image);
     }
     async create(model: Image): Promise<Image> {
-        throw new Error("Method not implemented.");
+        const entity = Mapper.map(model, ImageEntity);
+        const res = await this.imageRepository.save(entity);
+        return Mapper.map(res, Image);
     }
     async update(updatedModel: Image): Promise<Image> {
         throw new Error("Method not implemented.");

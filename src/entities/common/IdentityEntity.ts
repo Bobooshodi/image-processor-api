@@ -9,11 +9,9 @@ export abstract class IdentityEntity {
     @Generated("uuid")
     uuid: string;
 
-    @AutoMap()
     @CreateDateColumn()
     dateCreated: Date;
 
-    @AutoMap()
     @UpdateDateColumn()
     dateUpdated: Date;
 }

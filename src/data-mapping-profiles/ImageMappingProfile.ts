@@ -7,6 +7,8 @@ export class ImageMappingProfile extends ProfileBase {
     super();
     mapper.createMap(ImageEntity, Image)
     .forMember(m => m.id, mapFrom(src => src.uuid))
+    .forMember(m => m.dateCreated, mapFrom(src => src.dateCreated))
+    .forMember(m => m.dateUpdated, mapFrom(src => src.dateUpdated))
     .reverseMap();
   }
 }
