@@ -6,6 +6,8 @@ import path from 'path';
 import bodyParser from 'body-parser';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 import cors from 'cors';
+import { Mapper } from '@nartc/automapper';
+import { ImageMappingProfile } from './data-mapping-profiles';
 
 const port = 3000;
 
@@ -14,6 +16,10 @@ function findAllControllers() {
    .sync(path.join(__dirname, 'controllers/*'), { absolute: true })
    .map(controllerPath => require(controllerPath).default)
    .filter(applyController => applyController);
+}
+
+function initializeMappings() {
+  Mapper.addProfile(ImageMappingProfile);
 }
 
 function errorHandler(error, req, res, next) {
@@ -44,6 +50,7 @@ export async function bootstrap() {
  app.use(bodyParser.json());
  app.use(cors());
 
+ initializeMappings();
  findAllControllers().map(applyController => applyController(app));
  app.use(entityNotFoundErrorHandler);
  app.use(errorHandler);

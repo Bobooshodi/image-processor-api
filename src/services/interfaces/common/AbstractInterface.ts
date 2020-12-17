@@ -1,6 +1,6 @@
 export interface AbstractInterface<T> {
-    getById(id: string): () => T;
-    create(model: T): T;
-    update(updatedModel: T): T;
+    getById(id: string): Promise<T>;
+    create(model: T): Promise<T>;
+    update(updatedModel: T): Promise<T>;
     delete(id: string): boolean;
 }

@@ -3,6 +3,8 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es6",
+    "lib": ["es6", "dom"],
+    "types": ["reflect-metadata"],
     "noImplicitAny": false,
     "moduleResolution": "node",
     "sourceMap": true,
