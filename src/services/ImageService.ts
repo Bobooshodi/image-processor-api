@@ -1,24 +1,24 @@
 import { injectable, inject } from "inversify";
 import { Mapper } from '@nartc/automapper';
+import { getRepository } from "typeorm";
 
 import { ImageServiceInterface } from "./interfaces/ImageServiceInterface";
 import { Image } from "../models"
-import { ImageRepositoryInterface } from "../repositories/interfaces/ImageRepositoryInterface";
-import { ServiceInterfaceTypes } from "../service-container/ServiceTypes";
+import { ImageEntity } from "../entities";
 
 @injectable()
 export class ImageService implements ImageServiceInterface {
 
-    private imageRepository: ImageRepositoryInterface;
+    private imageRepository = getRepository(ImageEntity); 
 
-    public constructor(
-        @inject(ServiceInterfaceTypes.RepositoryTypes.ImageRepository) imageRepository: ImageRepositoryInterface,
-    ) {
-        this.imageRepository = imageRepository;
+    async getAll() {
+        const images = await this.imageRepository.find();
+
+        return Mapper.mapArray(images, Image);
     }
 
     async getById(id: string): Promise<Image> {
-        const imageEntity = await this.imageRepository.findById(id);
+        const imageEntity = await this.imageRepository.findOne(id);
 
         return Mapper.map(imageEntity, Image);
     }
