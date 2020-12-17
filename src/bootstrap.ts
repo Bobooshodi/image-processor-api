@@ -5,6 +5,7 @@ import glob from 'glob';
 import path from 'path';
 import bodyParser from 'body-parser';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
+import cors from 'cors';
 
 const port = 3000;
 
@@ -41,6 +42,7 @@ export async function bootstrap() {
  await createConnection();
  const app = withJson(express());
  app.use(bodyParser.json());
+ app.use(cors());
 
  findAllControllers().map(applyController => applyController(app));
  app.use(entityNotFoundErrorHandler);

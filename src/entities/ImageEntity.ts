@@ -1,8 +1,8 @@
 import { Column, Entity } from 'typeorm';
 import { IdentityEntity } from './common/IdentityEntity';
 
-@Entity()
-export class Image extends IdentityEntity {
+@Entity({name: "images"})
+export class ImageEntity extends IdentityEntity {
     @Column({type: 'varchar', unique: true, nullable: false})
     name: string;
 
