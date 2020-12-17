@@ -1,36 +1,49 @@
 import express from 'express';
 import { IExpressWithJson, JsonErrorResponse } from 'express-with-json/dist';
 import { body, validationResult } from 'express-validator';
-
+import multer from 'multer';
 
 import container from '../service-container/inversify.config';
 
 import { Image } from '../models';
 import { ServiceInterfaceTypes } from '../service-container/ServiceTypes';
-import { ImageServiceInterface } from '../services';
-import { uploadMiddleWare } from '../middlewares/UploadMiddleware';
+import { ImageServiceInterface, ImageUploadServiceInterface } from '../services';
 
+
+var uploadMiddleWare = multer({
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+      cb(null, true);
+    } else {
+      cb(null, false);
+      return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
+    }
+  }
+});
 var imageService = container.get<ImageServiceInterface>(ServiceInterfaceTypes.ServiceTypes.imageService);
+var imageUploader = container.get<ImageUploadServiceInterface>(ServiceInterfaceTypes.ServiceTypes.imageUploadService);
 
 export async function create(req: any) {
   try {
     const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    throw new JsonErrorResponse({ errors: errors.array() });
-  }
+    if (!errors.isEmpty()) {
+      throw new JsonErrorResponse({ errors: errors.array() });
+    }
 
     const { title, description } = req.body;
 
-    if (req.file && req.file.path) {
+    if (req.file) {
+      const uploadedFile = await imageUploader.upload(req.file);
+
       const image = new Image();
-      image.name = req.file.filename;
-      image.size = req.file.size;
+      image.name = uploadedFile.id;
+      image.size = uploadedFile.size;
       image.title = title;
       image.description = description;
 
       await imageService.create(image);
 
-      return { message: 'Image Uploaded Successfully', url: req.file.path }
+      return { message: 'Image Uploaded Successfully', url: uploadedFile.url }
     } else {
       console.log(req.file);
       throw new JsonErrorResponse({ error: 'invalid' }, { statusCode: 422 })
@@ -68,7 +81,7 @@ export async function update(req: express.Request) {
   return await imageService.update(existingImage);
 }
 
-const midd = [uploadMiddleWare.single('picture'), body('description').notEmpty()];
+const midd = [uploadMiddleWare.single('picture')];
 
 export default (app: IExpressWithJson) => {
   app.postJson('/images', ...midd, create);

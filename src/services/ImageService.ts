@@ -1,4 +1,4 @@
-import { injectable, inject } from "inversify";
+import { injectable } from "inversify";
 import { Mapper } from '@nartc/automapper';
 import { getRepository } from "typeorm";
 
