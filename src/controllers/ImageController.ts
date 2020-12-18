@@ -1,27 +1,25 @@
 import express from 'express';
 import { IExpressWithJson, JsonErrorResponse } from 'express-with-json/dist';
-import { body, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import multer from 'multer';
 
 import container from '../service-container/inversify.config';
 
-import { Image } from '../models';
 import { ServiceInterfaceTypes } from '../service-container/ServiceTypes';
-import { ImageServiceInterface, ImageUploadServiceInterface } from '../services';
+import { ImageServiceInterface } from '../services';
 
 
 var uploadMiddleWare = multer({
   fileFilter: (req, file, cb) => {
-    if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+    if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "application/zip") {
       cb(null, true);
     } else {
       cb(null, false);
-      return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
+      return cb(new Error('Only Images (.png, .jpg and .jpeg) or ZIP (.zip) files are allowed!'));
     }
   }
 });
 var imageService = container.get<ImageServiceInterface>(ServiceInterfaceTypes.ServiceTypes.imageService);
-var imageUploader = container.get<ImageUploadServiceInterface>(ServiceInterfaceTypes.ServiceTypes.imageUploadService);
 
 export async function create(req: any) {
   try {
@@ -30,22 +28,13 @@ export async function create(req: any) {
       throw new JsonErrorResponse({ errors: errors.array() });
     }
 
-    const { title, description } = req.body;
+    const { description } = req.body;
 
-    if (req.file) {
-      const uploadedFile = await imageUploader.upload(req.file);
+    if (req.file) {      
+      const uploadDetails = await imageService.createAndSave(req.file, description);
 
-      const image = new Image();
-      image.name = uploadedFile.id;
-      image.size = uploadedFile.size;
-      image.title = title;
-      image.description = description;
-
-      await imageService.create(image);
-
-      return { message: 'Image Uploaded Successfully', url: uploadedFile.url }
+      return { message: 'Images Uploaded Successfully', details: uploadDetails }
     } else {
-      console.log(req.file);
       throw new JsonErrorResponse({ error: 'invalid' }, { statusCode: 422 })
     }
   } catch (error) {
