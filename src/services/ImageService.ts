@@ -30,7 +30,7 @@ export class ImageService implements ImageServiceInterface {
     async update(updatedModel: Image): Promise<Image> {
         throw new Error("Method not implemented.");
     }
-    delete(id: string): boolean {
+    delete(id: string): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 

@@ -25,3 +25,8 @@ clone the Repo
  npm install
  npm run migrate
  npm start
+
+
+
+                                NOTE
+For the Integration Test, this requires the Server to be running. just start the docker-container, and run npm run test

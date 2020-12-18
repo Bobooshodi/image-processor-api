@@ -50,6 +50,7 @@
     "@types/nodemon": "^1.19.0",
     "@types/sqlite3": "^3.1.6",
     "chai": "*",
+    "chai-http": "^4.3.0",
     "mocha": "*",
     "nodemon": "^2.0.6",
     "ts-mockito": "^2.6.1",
