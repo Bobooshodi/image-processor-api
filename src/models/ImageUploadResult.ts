@@ -3,6 +3,7 @@ export interface ImageUploadSuccessResult {
     size: string;
     url: string;
     fileName: string;
+    thumbnails?: ImageUploadSuccessResult[]; 
 }
 
 export interface ImageUploadFailureResult {

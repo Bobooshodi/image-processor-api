@@ -57,7 +57,7 @@ export class ImageService implements ImageServiceInterface {
 
         const successfulStats = {
             count: uploadResults.success.length,
-            results: uploadResults.success.map(res => ({ file: res.fileName, url: res.url }))
+            results: uploadResults.success.map(res => ({ file: res.fileName, url: res.url, thumbnails: res.thumbnails.map(t => ({ file: t.fileName, url: t.url })) }))
         };
 
         const failedStats = {
