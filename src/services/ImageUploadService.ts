@@ -28,37 +28,43 @@ export class ImageUploadService implements ImageUploadServiceInterface {
   }
 
   processUpload = async (fileBuffer: Buffer, fileName: string) => {
-    let sharpObj = sharp(fileBuffer);
-    const fileMetadata = await sharpObj.metadata();
-    let uploadResponse: any;
+    let isImage: boolean | ImageUploadFailureResult;
     let uploadResult: any | ImageUploadFailureResult | ImageUploadSuccessResult;
-    const isImage = this.isFileAnImage(fileName, fileMetadata);
-    if (true === isImage) {
-      uploadResponse = await this.streamUpload(createReadStream(fileBuffer));
-      uploadResult = {
-        fileName: fileName,
-        id: uploadResponse.public_id,
-        size: uploadResponse.bytes,
-        url: uploadResponse.url,
-      }
-      if (this.shouldGenerateThumbnails(fileMetadata)) {
-        const thumbNailSharpObj = sharp(fileBuffer);
-        for (const width of this.thmbnailWidths) {
-          const resizeOp = thumbNailSharpObj.resize(width);
-          uploadResponse = await this.streamUpload(resizeOp, true);
-          const thumbnailRes: ImageUploadSuccessResult = {
-            fileName: fileName,
-            id: uploadResponse.public_id,
-            size: uploadResponse.bytes,
-            url: uploadResponse.url,
-          }
+    try {
+      let sharpObj = sharp(fileBuffer);
+      const fileMetadata = await sharpObj.metadata();
+      let uploadResponse: any;
+      isImage = this.isFileAnImage(fileName, fileMetadata);
+      if (true === isImage) {
+        uploadResponse = await this.streamUpload(createReadStream(fileBuffer));
+        uploadResult = {
+          fileName: fileName,
+          id: uploadResponse.public_id,
+          size: uploadResponse.bytes,
+          url: uploadResponse.url,
+        } 
+        if (this.shouldGenerateThumbnails(fileMetadata)) {
+          for (const width of this.thmbnailWidths) {
+            const thumbNailSharpObj = sharp(fileBuffer);
+            const resizeOp = thumbNailSharpObj.resize(width);
+            uploadResponse = await this.streamUpload(resizeOp, true);
+            const thumbnailRes: ImageUploadSuccessResult = {
+              fileName: fileName,
+              id: uploadResponse.public_id,
+              size: uploadResponse.bytes,
+              url: uploadResponse.url,
+            }
 
-          uploadResult.thumbnails = !!uploadResult.thumbnails ? [...uploadResult.thumbnails, thumbnailRes] : [thumbnailRes];
+            uploadResult.thumbnails = !!uploadResult.thumbnails ? [...uploadResult.thumbnails, thumbnailRes] : [thumbnailRes];
+          }
+        } else {
+          uploadResult.thumbnails = [Object.assign({}, uploadResult)];
         }
       } else {
-        uploadResult.thumbnails = [Object.assign({}, uploadResult)];
+        uploadResult = isImage;
       }
-    } else {
+    } catch (e) {
+      isImage = this.isFileAnImage(fileName);
       uploadResult = isImage;
     }
 
@@ -78,21 +84,25 @@ export class ImageUploadService implements ImageUploadServiceInterface {
         let fileBuffer: Buffer;
 
         for (const filePointer in allFiles) {
-          file = allFiles[filePointer];
+          try {
+            file = allFiles[filePointer];
           fileBuffer = await this.streamToBuffer(file.nodeStream());
 
           uploadResponse = await this.processUpload(fileBuffer, file.name);
 
-          if (uploadResponse.sucess) {
+          if (uploadResponse.success) {
             uploadResults.success.push(uploadResponse.uploadResult);
           } else {
             uploadResults.failed.push(uploadResponse.uploadResult);
+          }
+          } catch (e) {
+            console.error(e, file.name);
           }
         }
       });
     } else {
       uploadResponse = await this.processUpload(file.buffer, file.originalname)
-      
+
       if (uploadResponse.success) {
         uploadResults.success.push(uploadResponse.uploadResult);
       } else {
@@ -114,15 +124,15 @@ export class ImageUploadService implements ImageUploadServiceInterface {
             reject(error);
           }
         }
-      );   
+      );
 
       stream.pipe(streamUpload);
     });
   };
 
-  private isFileAnImage = (fileName: string, fileMetadata: sharp.Metadata): ImageUploadFailureResult | boolean => {
-    if (!fileMetadata.format) {
-      return { file: fileName, reason: 'FileType cannot be determined' };
+  private isFileAnImage = (fileName: string, fileMetadata?: sharp.Metadata): ImageUploadFailureResult | boolean => {
+    if (!fileMetadata || !fileMetadata.format) {
+      return { file: fileName, reason: 'FileType cannot be determined, nice try tho. :)' };
     } else if (!this.acceptedFileExtensions.includes(fileMetadata.format)) {
       return { file: fileName, reason: `File with extension ${fileMetadata.format} are not accepted but, Nice Try tho. :)` }
     }
