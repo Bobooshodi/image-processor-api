@@ -7,10 +7,10 @@ clone the Repo
 
  sh "cd image-processor-api";
 
+rename .env.dist or .env.prod to .env and modify .env accordingly
+renamr docker-compose.debug.yaml to docker-compose.yaml and modify accordingly
+
  docker-compose up -d --build
-
- You might want to modify the .env file as needed.
-
  ------------------------------------------------------------------------------------------
 
                         Without Docker
@@ -21,6 +21,8 @@ clone the Repo
     sh "git clone https://github.com/Bobooshodi/image-processor-api.git"
 
  sh "cd image-processor-api";
+
+ rename .env.dist or .env.prod to .env and modify .env accordingly
 
  npm install
  npm run migrate
